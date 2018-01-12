@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-redash-server-configmap
+data:
+  REDASH_COOKIE_SECRET: veryverysecret
+  REDASH_WEB_WORKERS: "4"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-redash-worker-configmap
+data:
+  QUEUES: "queries,scheduled_queries,celery"
+  WORKERS_COUNT: "2"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-redash-common-configmap
+data:
+  REDASH_LOG_LEVEL: "INFO"
+  REDASH_REDIS_URL: "redis://localhost:6379/0"

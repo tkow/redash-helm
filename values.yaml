@@ -1,0 +1,5 @@
+cloudsql:
+  instance_connection_name: ''
+  port: 5432
+  credential_file_path: /secrets/cloudsql/credentials.json
+  secret_name: cloudsql-instance-credentials

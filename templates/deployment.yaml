@@ -1,0 +1,87 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redash
+  labels:
+    app: {{ template "redash.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        io.redash.service: {{ .Release.Name }}-redash
+        app: {{ template "redash.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+
+      - name: server
+        image: redash/redash:latest
+        args: ["server"]
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+        env:
+        - name: REDASH_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: redash-cloudsql-db-credentials
+              key: url
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-redash-server-configmap
+        - configMapRef:
+            name: {{ .Release.Name }}-redash-common-configmap
+
+      - name: worker
+        image: redash/redash:latest
+        args: ["scheduler"]
+        env:
+        - name: REDASH_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: redash-cloudsql-db-credentials
+              key: url
+
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-redash-worker-configmap
+        - configMapRef:
+            name: {{ .Release.Name }}-redash-common-configmap
+
+      - name: redis
+        image: redis:3.0-alpine
+        ports:
+        - containerPort: 6379
+          protocol: TCP
+
+      - name: cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.11
+        command: 
+          - /cloud_sql_proxy
+          - --dir=/cloudsql
+          - -instances={{ .Values.cloudsql.instance_connection_name }}=tcp:{{ .Values.cloudsql.port }}
+          - -credential_file={{ .Values.cloudsql.credential_file_path }}
+
+        ports:
+        - containerPort: 3306
+          protocol: TCP
+        - containerPort: 5432
+          protocol: TCP
+        volumeMounts:
+        - name: cloudsql-instance-credentials
+          mountPath: /secrets/cloudsql
+          readOnly: true
+        - name: cloudsql
+          mountPath: /cloudsql
+
+      volumes:
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: {{ .Values.cloudsql.secret_name }}
+      - name: cloudsql
+        emptyDir: {}
+
