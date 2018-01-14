@@ -41,6 +41,14 @@ $ kubectl config set-context minikube
 Context "minikube" modified.
 ```
 
+## Create Volume
+
+- https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+
+# Reference
+
+- https://github.com/kubernetes/charts/tree/master/stable/postgresql
+
 # Author
 
 - [Himenon](https://github.com/Himenon)

@@ -35,6 +35,14 @@ spec:
             name: {{ .Release.Name }}-redash-server-configmap
         - configMapRef:
             name: {{ .Release.Name }}-redash-common-configmap
+        livenessProbe: 
+          {{- range $key, $val := .Values.livenessProbe }}
+          {{ $key }}: {{ $val }}
+          {{- end }}
+        readinessProbe:
+          {{- range $key, $val := .Values.readinessProbe }}
+          {{ $key }}: {{ $val }}
+          {{- end }}
 
       - name: worker
         image: redash/redash:latest
@@ -58,14 +66,14 @@ spec:
         - containerPort: 6379
           protocol: TCP
 
+      {{- if .Values.googleCloudSQL.enabled }}
       - name: cloudsql-proxy
-        image: gcr.io/cloudsql-docker/gce-proxy:1.11
+        image: {{ .Values.googleCloudSQL.image }}:{{ .Values.googleCloudSQL.imageTag }}
         command: 
           - /cloud_sql_proxy
           - --dir=/cloudsql
-          - -instances={{ .Values.cloudsql.instance_connection_name }}=tcp:{{ .Values.cloudsql.port }}
-          - -credential_file={{ .Values.cloudsql.credential_file_path }}
-
+          - -instances={{ .Values.googleCloudSQL.instanceConnectionName }}=tcp:{{ .Values.googleCloudSQL.port }}
+          - -credential_file={{ .Values.googleCloudSQL.credentialFilePath }}
         ports:
         - containerPort: 3306
           protocol: TCP
@@ -77,11 +85,29 @@ spec:
           readOnly: true
         - name: cloudsql
           mountPath: /cloudsql
+      {{- else if .Values.postgres.enabled }}
+      - name: postgres
+        image: {{ .Values.postgres.image }}:{{ .Values.postgres.imageTag }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+      {{- end }}
 
       volumes:
+      {{- if .Values.googleCloudSQL.enabled }}
       - name: cloudsql-instance-credentials
         secret:
-          secretName: {{ .Values.cloudsql.secret_name }}
+          secretName: {{ .Values.googleCloudSQL.secretName }}
       - name: cloudsql
         emptyDir: {}
+      {{- else if .Values.postgres.enabled }}
+      - name: data
+        {{- if .Values.ersistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (include "redash.fullname" .) }}
+        {{- else }}
+        emptyDir: {}
+        {{- end}}
+      {{- end }}
+
 

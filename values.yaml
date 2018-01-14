@@ -1,5 +1,45 @@
-cloudsql:
-  instance_connection_name: ''
+googleCloudSQL:
+  image: "gcr.io/cloudsql-docker/gce-proxy:1.11"
+  imageTag: "1.11"
+  enabled: false
+  instanceConnectionName: ''
   port: 5432
-  credential_file_path: /secrets/cloudsql/credentials.json
-  secret_name: cloudsql-instance-credentials
+  credentialFilePath: /secrets/cloudsql/credentials.json
+  secretName: cloudsql-instance-credentials
+
+persistence:
+  enabled: false
+  storageClass: ""
+
+nginx:
+  image: "mysql"
+  imageTag: "5.7.14"
+  exportPort: 80
+
+postgres:
+  image: "postgres"
+  imageTag: "9.5.6-alpine"
+  exportPort: 80
+
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+
+service:
+  type: ClusterIP
+  port: 3306
