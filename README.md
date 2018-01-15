@@ -10,6 +10,36 @@ $ https://github.com/Himenon/redash-helm.git
 
 ### From local
 
+#### Postgres
+
+```
+$ kubectl apply -f pv.yaml
+
+$ helm install -f psql-values.yaml --name redash stable/postgresql
+
+# Make Password Secret
+$ PGPASSWORD=$(kubectl get secret --namespace redash redash-postgresql -o jsonpath="{.data.postgres-password}" | base64 --decode; echo)
+$ kubectl create secret generic redash-db --from-literal=password=$PGPASSWORD
+
+# Check Service Port
+$ kubectl get svc
+```
+
+### Install redash
+
+```bash
+$ helm install --name my .
+
+$ ./bin/docker-entrypoint create_db
+```
+
+## Uninstall
+
+```bash
+$ helm del --purge my
+```
+
+
 ```bash
 $ helm install ./redash-helm
 

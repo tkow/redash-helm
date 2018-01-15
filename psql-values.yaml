@@ -1,0 +1,9 @@
+imageTag: "9.5"
+
+postgresUser:
+postgresDatabase:
+postgresPassword:
+
+persistence:
+  enabled: true
+  storageClass: psql-storage
