@@ -1,4 +1,5 @@
 googleCloudSQL:
+  enabled: false
   image: "gcr.io/cloudsql-docker/gce-proxy:1.11"
   imageTag: "1.11"
   enabled: false
@@ -8,18 +9,25 @@ googleCloudSQL:
   secretName: cloudsql-instance-credentials
 
 persistence:
-  enabled: false
-  storageClass: ""
+  enabled: true
+  # existingClaim: ""
+  storageClass: "redash-psql-storage"
+  accessMode: ReadWriteOnce
+  size: 8Gi
+  subPath: "postgresql-db"
 
-nginx:
-  image: "mysql"
-  imageTag: "5.7.14"
-  exportPort: 80
+database:
+  name: test-db
+  port: 5432
+  user: test-user
+  psql:
+    image: "postgres"
+    imageTag: "9.5.6-alpine"
+    initdbArgs: ""
 
-postgres:
-  image: "postgres"
-  imageTag: "9.5.6-alpine"
-  exportPort: 80
+
+service:
+  type: NodePort
 
 livenessProbe:
   initialDelaySeconds: 30
@@ -39,7 +47,3 @@ resources:
   requests:
     memory: 256Mi
     cpu: 100m
-
-service:
-  type: ClusterIP
-  port: 3306

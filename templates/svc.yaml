@@ -11,5 +11,5 @@ spec:
     port: 80
     targetPort: 5000
   selector:
-    io.redash.service: nginx
-  type: LoadBalancer
+    io.redash.service: {{ .Release.Name }}-redash
+  type: {{ .Values.service.type }}

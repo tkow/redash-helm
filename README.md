@@ -11,7 +11,10 @@ $ https://github.com/Himenon/redash-helm.git
 ### From local
 
 ```bash
-helm install -f redash-helm
+$ helm install ./redash-helm
+
+# Go to servcer container
+$ ./bin/docker-entrypoint create_db
 ```
 
 # Start redash on Minikube
@@ -44,6 +47,16 @@ Context "minikube" modified.
 ## Create Volume
 
 - https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+
+## Expose from NodePort
+
+```$xslt
+$ kubectl expose deployment redash --type=NodePort --port=80 --target-port=5000
+
+$ minikube service list
+```
+
+- https://github.com/kubernetes/minikube/blob/master/README.md
 
 # Reference
 

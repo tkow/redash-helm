@@ -26,34 +26,27 @@ spec:
           protocol: TCP
         env:
         - name: REDASH_DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: redash-cloudsql-db-credentials
-              key: url
+          value: postgresql://{{ .Values.database.user }}@localhost/{{- .Values.database.name }}:{{ .Values.database.port }}?sslmode=disable
         envFrom:
         - configMapRef:
             name: {{ .Release.Name }}-redash-server-configmap
         - configMapRef:
             name: {{ .Release.Name }}-redash-common-configmap
-        livenessProbe: 
-          {{- range $key, $val := .Values.livenessProbe }}
-          {{ $key }}: {{ $val }}
-          {{- end }}
-        readinessProbe:
-          {{- range $key, $val := .Values.readinessProbe }}
-          {{ $key }}: {{ $val }}
-          {{- end }}
+#        livenessProbe:
+#          {{- range $key, $val := .Values.livenessProbe }}
+#          {{ $key }}: {{ $val }}
+#          {{- end }}
+#        readinessProbe:
+#          {{- range $key, $val := .Values.readinessProbe }}
+#          {{ $key }}: {{ $val }}
+#          {{- end }}
 
       - name: worker
         image: redash/redash:latest
         args: ["scheduler"]
         env:
         - name: REDASH_DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: redash-cloudsql-db-credentials
-              key: url
-
+          value: postgresql://{{ .Values.database.user }}@localhost/{{- .Values.database.name }}:{{ .Values.database.port }}?sslmode=disable
         envFrom:
         - configMapRef:
             name: {{ .Release.Name }}-redash-worker-configmap
@@ -74,24 +67,40 @@ spec:
           - --dir=/cloudsql
           - -instances={{ .Values.googleCloudSQL.instanceConnectionName }}=tcp:{{ .Values.googleCloudSQL.port }}
           - -credential_file={{ .Values.googleCloudSQL.credentialFilePath }}
-        ports:
-        - containerPort: 3306
-          protocol: TCP
-        - containerPort: 5432
-          protocol: TCP
         volumeMounts:
         - name: cloudsql-instance-credentials
           mountPath: /secrets/cloudsql
           readOnly: true
         - name: cloudsql
           mountPath: /cloudsql
-      {{- else if .Values.postgres.enabled }}
+      {{- else if .Values.persistence.enabled }}
       - name: postgres
-        image: {{ .Values.postgres.image }}:{{ .Values.postgres.imageTag }}
+        image: {{ .Values.database.psql.image }}:{{ .Values.database.psql.imageTag }}
+        env:
+        - name: POSTGRES_USER
+          value: {{ default "postgres" .Values.database.psql.user | quote }}
+          # Required for pg_isready in the health probes.
+        - name: PGUSER
+          value: {{ default "postgres" .Values.database.user | quote }}
+        - name: POSTGRES_DB
+          value: {{ default "" .Values.database.name | quote }}
+        - name: POSTGRES_INITDB_ARGS
+          value: {{ default "" .Values.database.psql.initdbArgs | quote }}
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "redash.fullname" . }}
+              key: postgres-password
         volumeMounts:
         - name: data
-          mountPath: /var/lib/postgresql/data
+          mountPath: /var/lib/postgresql/data/pgdata
+          subPath: {{ .Values.persistence.subPath }}
       {{- end }}
+        ports:
+        - containerPort: 5432
+          protocol: TCP
 
       volumes:
       {{- if .Values.googleCloudSQL.enabled }}
@@ -100,14 +109,12 @@ spec:
           secretName: {{ .Values.googleCloudSQL.secretName }}
       - name: cloudsql
         emptyDir: {}
-      {{- else if .Values.postgres.enabled }}
+      {{- else if .Values.persistence.enabled }}
       - name: data
-        {{- if .Values.ersistence.enabled }}
+        {{- if .Values.persistence.enabled }}
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.existingClaim | default (include "redash.fullname" .) }}
         {{- else }}
         emptyDir: {}
         {{- end}}
       {{- end }}
-
-

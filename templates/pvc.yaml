@@ -2,9 +2,9 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: {{ template "postgresql.fullname" . }}
+  name: {{ template "redash.fullname" . }}
   labels:
-    app: {{ template "postgresql.fullname" . }}
+    app: {{ template "redash.fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
