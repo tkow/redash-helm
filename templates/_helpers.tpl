@@ -14,3 +14,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- $name := default .Chart.Name .Values.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "redash.databaseurl" -}}
+{{- printf "postgresql://%s:%s@%s/%s" .Values.db.user .Values.db.pass .Values.db.host .Values.db.name | b64enc | quote -}}
+{{- end -}}

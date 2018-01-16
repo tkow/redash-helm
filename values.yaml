@@ -2,11 +2,10 @@ secret:
   redashDbPassKey: redash-db
 
 db:
-  name: test-db
-  url: redash-postgresql
-  port: 5432
-  user: test-user
-  redashDbUrl: postgresql://postgres@127.0.0.1/postgres:5432
+  name: "postgres"
+  user: "postgres"
+  pass: ""
+  host: ""
 
 service:
   type: NodePort

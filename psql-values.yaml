@@ -1,9 +1,13 @@
-imageTag: "9.5"
+imageTag: "9.5.6-alpine"
 
-postgresUser:
-postgresDatabase:
-postgresPassword:
+# postgresUser:
+# postgresDatabase:
+# postgresPassword:
 
 persistence:
   enabled: true
   storageClass: psql-storage
+
+service:
+  type: ClusterIP
+  port: 5432

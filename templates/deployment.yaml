@@ -14,19 +14,24 @@ spec:
       labels:
         io.redash.service: {{ .Release.Name }}-redash
         app: {{ template "redash.name" . }}
-        release: {{ .Release.Name }}k
+        release: {{ .Release.Name }}
     spec:
       containers:
 
       - name: server
         image: redash/redash:latest
         args: ["server"]
+        # command: ["/bin/bash", "-c"]
+        # args: ["export REDASH_DATABASE_URL=postgresql://$DB_USER:$DB_PASS@$DB_HOST/$DB_NAME && ./bin/docker-entrypoint server"]
         ports:
         - containerPort: 5000
           protocol: TCP
         env:
         - name: REDASH_DATABASE_URL
-          value: {{ .Values.db.redashDbUrl }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "redash.fullname" . }}
+              key: REDASH_DATABASE_URL
         envFrom:
         - configMapRef:
             name: {{ .Release.Name }}-redash-server-configmap
@@ -36,9 +41,14 @@ spec:
       - name: worker
         image: redash/redash:latest
         args: ["scheduler"]
+        # command: ["/bin/bash", "-c"]
+        # args: ["export REDASH_DATABASE_URL=postgresql://$DB_USER:$DB_PASS@$DB_HOST/$DB_NAME && ./bin/docker-entrypoint scheduler"]
         env:
         - name: REDASH_DATABASE_URL
-          value: {{ .Values.db.redashDbUrl }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "redash.fullname" . }}
+              key: REDASH_DATABASE_URL
         envFrom:
         - configMapRef:
             name: {{ .Release.Name }}-redash-worker-configmap

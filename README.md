@@ -10,11 +10,43 @@ $ https://github.com/Himenon/redash-helm.git
 
 ### From local
 
+#### Helm Initialize
+
+```bash
+$ helm init
+```
+
+#### Create Persistent Volume
+
+```yaml
+# pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: psql-pv
+  annotations:
+    pv.beta.kubernetes.io/gid: "0"
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: psql-storage
+  hostPath:
+    path: /data/pv0001/
+```
+
+```bash
+$ kubectl apply -f pv.yaml
+```
+
+- https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistent-volumes
+- https://github.com/kubernetes/minikube/blob/master/docs/persistent_volumes.md
+
 #### Postgres
 
 ```
-$ kubectl apply -f pv.yaml
-
 $ helm install -f psql-values.yaml --name redash stable/postgresql
 
 # Make Password Secret
@@ -25,7 +57,7 @@ $ kubectl create secret generic redash-db --from-literal=password=$PGPASSWORD
 $ kubectl get svc
 ```
 
-### Install redash
+#### re:dash
 
 ```bash
 $ helm install --name my .
