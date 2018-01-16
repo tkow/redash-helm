@@ -1,16 +1,8 @@
-secret:
-  redashDbPassKey: redash-db
-
 db:
-  name: "postgres"
-  user: "postgres"
+  name: ""
+  user: ""
   pass: ""
   host: ""
 
 service:
-  type: NodePort
-
-resources:
-  requests:
-    memory: 256Mi
-    cpu: 100m
+  type: LoadBalancer

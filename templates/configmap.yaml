@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-redash-server-configmap
 data:
-  REDASH_COOKIE_SECRET: veryverysecret
+  REDASH_COOKIE_SECRET: {{ randAlphaNum 10 | b64enc | quote }}
   REDASH_WEB_WORKERS: "4"
 
 ---

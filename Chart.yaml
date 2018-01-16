@@ -1,4 +1,4 @@
 apiVersion: v1
-description: Redash for kubernetes
+description: Redash for Kubernetes
 name: redash
 version: 0.1.0
